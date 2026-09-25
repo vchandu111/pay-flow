@@ -15,12 +15,14 @@ export interface LoginPayload {
 }
 
 export async function registerRequest(payload: RegisterPayload): Promise<{ user: Profile }> {
-  const res = await apiClient.post<{ user: Profile }>('/auth/register', payload);
+  const res = await apiClient.post<{ user: Profile; accessToken: string }>('/auth/register', payload);
+  localStorage.setItem('payflow_access_token', res.data.accessToken);
   return res.data;
 }
 
 export async function loginRequest(payload: LoginPayload): Promise<{ user: Profile }> {
-  const res = await apiClient.post<{ user: Profile }>('/auth/login', payload);
+  const res = await apiClient.post<{ user: Profile; accessToken: string }>('/auth/login', payload);
+  localStorage.setItem('payflow_access_token', res.data.accessToken);
   return res.data;
 }
 
