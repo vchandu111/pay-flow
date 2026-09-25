@@ -7,10 +7,6 @@ import { hashPassword, verifyPassword } from './password.js';
 import { issueRefreshToken, rotateRefreshToken, revokeRefreshToken, signAccessToken } from './tokens.js';
 import type { LoginInput, RegisterInput } from './auth.schemas.js';
 
-// Generic, identical message for both "unknown email" and "wrong password" so login
-// cannot be used to enumerate registered accounts.
-const INVALID_CREDENTIALS_MESSAGE = 'Invalid email or password';
-
 interface AuthResult {
   user: { id: string; name: string; email: string };
   accessToken: string;
@@ -63,13 +59,13 @@ export async function login(input: LoginInput, req: Request): Promise<AuthResult
 
   if (!user) {
     await writeAuditLog(prisma, { eventType: 'LOGIN_FAILURE', req, metadata: { email: input.email } });
-    throw new UnauthorizedError(INVALID_CREDENTIALS_MESSAGE, 'INVALID_CREDENTIALS');
+    throw new UnauthorizedError('No account found with that email', 'ACCOUNT_NOT_FOUND');
   }
 
   const validPassword = await verifyPassword(user.passwordHash, input.password);
   if (!validPassword) {
     await writeAuditLog(prisma, { userId: user.id, eventType: 'LOGIN_FAILURE', req });
-    throw new UnauthorizedError(INVALID_CREDENTIALS_MESSAGE, 'INVALID_CREDENTIALS');
+    throw new UnauthorizedError('Incorrect password', 'INCORRECT_PASSWORD');
   }
 
   await writeAuditLog(prisma, { userId: user.id, eventType: 'LOGIN_SUCCESS', req });
