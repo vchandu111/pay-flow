@@ -20,3 +20,13 @@ export async function getTransactionHandler(req: Request, res: Response, next: N
     next(err);
   }
 }
+
+export async function searchTransactionsHandler(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const q = (req.query.q as string | undefined) ?? '';
+    const transactions = await transactionsService.searchTransactionsByDescription(req.user!.id, q);
+    res.status(200).json({ transactions });
+  } catch (err) {
+    next(err);
+  }
+}

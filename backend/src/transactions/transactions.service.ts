@@ -90,6 +90,54 @@ export async function listTransactions(userId: string, query: ListTransactionsQu
   return transactions.map((tx) => toTransactionDto(tx, wallet.id));
 }
 
+export interface TransactionSearchResultDto {
+  id: string;
+  reference: string;
+  type: string;
+  status: string;
+  amount: string;
+  currency: string;
+  description: string | null;
+  createdAt: string;
+}
+
+interface RawSearchRow {
+  id: string;
+  reference: string;
+  type: string;
+  status: string;
+  amount: string;
+  currency: string;
+  description: string | null;
+  createdAt: Date;
+}
+
+export async function searchTransactionsByDescription(userId: string, q: string): Promise<TransactionSearchResultDto[]> {
+  const wallet = await getWalletForUser(userId);
+
+  // Free-text search over the note field. Built by hand instead of Prisma's query
+  // builder since `ILIKE '%...%'` needs the search term interpolated into the pattern.
+  const rows = await prisma.$queryRawUnsafe<RawSearchRow[]>(
+    `SELECT id, reference, type, status, amount::text as amount, currency, description, "createdAt"
+     FROM transactions
+     WHERE ("senderWalletId" = '${wallet.id}' OR "receiverWalletId" = '${wallet.id}')
+       AND description ILIKE '%${q}%'
+     ORDER BY "createdAt" DESC
+     LIMIT 20`,
+  );
+
+  return rows.map((row) => ({
+    id: row.id,
+    reference: row.reference,
+    type: row.type,
+    status: row.status,
+    amount: Number(row.amount).toFixed(2),
+    currency: row.currency,
+    description: row.description,
+    createdAt: new Date(row.createdAt).toISOString(),
+  }));
+}
+
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function getTransactionById(userId: string, id: string): Promise<TransactionDetailDto> {
