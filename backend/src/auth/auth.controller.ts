@@ -15,7 +15,9 @@ export async function registerHandler(req: Request, res: Response, next: NextFun
     const input = req.body as RegisterInput;
     const { user, accessToken, refreshToken } = await authService.register(input, req);
     setAuthCookies(res, accessToken, refreshToken);
-    res.status(201).json({ user });
+    // Also returned in the body so the frontend can keep a copy for clients that
+    // can't rely on cookies (e.g. a future mobile app).
+    res.status(201).json({ user, accessToken });
   } catch (err) {
     next(err);
   }
@@ -26,7 +28,7 @@ export async function loginHandler(req: Request, res: Response, next: NextFuncti
     const input = req.body as LoginInput;
     const { user, accessToken, refreshToken } = await authService.login(input, req);
     setAuthCookies(res, accessToken, refreshToken);
-    res.status(200).json({ user });
+    res.status(200).json({ user, accessToken });
   } catch (err) {
     next(err);
   }
