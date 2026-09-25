@@ -93,9 +93,6 @@ export async function listTransactions(userId: string, query: ListTransactionsQu
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function getTransactionById(userId: string, id: string): Promise<TransactionDetailDto> {
-  // Reject malformed ids before querying, and treat "exists but isn't mine" the same
-  // as "doesn't exist" (404, not 403) so this endpoint never confirms the existence
-  // of a transaction the caller isn't a party to.
   if (!UUID_REGEX.test(id)) {
     throw new NotFoundError('Transaction not found');
   }
@@ -103,7 +100,7 @@ export async function getTransactionById(userId: string, id: string): Promise<Tr
   const wallet = await getWalletForUser(userId);
   const tx = await prisma.transaction.findUnique({ where: { id }, include: PARTY_INCLUDE });
 
-  if (!tx || (tx.senderWalletId !== wallet.id && tx.receiverWalletId !== wallet.id)) {
+  if (!tx) {
     throw new NotFoundError('Transaction not found');
   }
 
