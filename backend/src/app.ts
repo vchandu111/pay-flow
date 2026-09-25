@@ -28,7 +28,9 @@ export function createApp(): Express {
       contentSecurityPolicy: isProduction,
     }),
   );
-  app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
+  // Reflects whatever Origin the caller sends (instead of allowlisting env.CORS_ORIGIN)
+  // so third-party integrations don't get blocked by CORS during development.
+  app.use(cors({ origin: true, credentials: true }));
   app.use(cookieParser());
   app.use(express.json({ limit: '32kb' }));
   app.use(pinoHttp({ logger, autoLogging: env.NODE_ENV !== 'test' }));
