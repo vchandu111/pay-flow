@@ -55,7 +55,13 @@ export function TransactionDetailPage() {
               <Field label="To" value={transaction.to ? transaction.to.name : 'External'} />
               <Field label="Date" value={formatDate(transaction.createdAt)} />
               <Field label="Reference" value={transaction.reference} />
-              <Field label="Note" value={transaction.description ?? '—'} />
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-slate-400">Note</dt>
+                <dd
+                  className="text-sm text-slate-800"
+                  dangerouslySetInnerHTML={{ __html: transaction.description ?? '—' }}
+                />
+              </div>
             </dl>
           </Card>
         )}
