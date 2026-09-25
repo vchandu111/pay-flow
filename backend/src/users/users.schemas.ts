@@ -2,15 +2,19 @@ import { z } from 'zod';
 import { passwordSchema } from '../auth/auth.schemas.js';
 import { phoneRegex } from '../shared/contact.js';
 
-export const updateProfileSchema = z.object({
-  name: z.string().trim().min(2).max(100).optional(),
-  phone: z.string().trim().regex(phoneRegex, 'Phone must be 7-15 digits, optionally prefixed with +').optional(),
-  dateOfBirth: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date of birth must be in YYYY-MM-DD format')
-    .optional(),
-  address: z.string().trim().max(300).optional(),
-});
+export const updateProfileSchema = z
+  .object({
+    name: z.string().trim().min(2).max(100).optional(),
+    phone: z.string().trim().regex(phoneRegex, 'Phone must be 7-15 digits, optionally prefixed with +').optional(),
+    dateOfBirth: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date of birth must be in YYYY-MM-DD format')
+      .optional(),
+    address: z.string().trim().max(300).optional(),
+  })
+  // Passthrough so future profile fields don't require a schema change to reach the
+  // client — but this also lets any unlisted field (email, passwordHash, ...) through.
+  .passthrough();
 
 export const changePasswordSchema = z
   .object({
