@@ -45,9 +45,7 @@ export async function updateProfile(userId: string, input: UpdateProfileInput, r
   const user = await prisma.user.update({
     where: { id: userId },
     data: {
-      name: input.name,
-      phone: input.phone,
-      address: input.address,
+      ...input,
       dateOfBirth: input.dateOfBirth ? new Date(input.dateOfBirth) : undefined,
     },
   });
