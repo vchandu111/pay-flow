@@ -1,0 +1,137 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  email        String   @unique
+  phone        String   @unique
+  passwordHash String
+  dateOfBirth  DateTime? @db.Date
+  address      String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  wallet        Wallet?
+  refreshTokens RefreshToken[]
+  auditLogs     AuditLog[]
+  beneficiaries Beneficiary[]
+
+  @@map("users")
+}
+
+enum WalletStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+model Wallet {
+  id           String       @id @default(uuid()) @db.Uuid
+  walletNumber String       @unique
+  userId       String       @unique @db.Uuid
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  balance      Decimal      @default(0) @db.Decimal(14, 2)
+  currency     String       @default("INR") @db.VarChar(3)
+  status       WalletStatus @default(ACTIVE)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  sentTransactions     Transaction[] @relation("SenderWallet")
+  receivedTransactions Transaction[] @relation("ReceiverWallet")
+
+  @@map("wallets")
+}
+
+enum TransactionType {
+  TOPUP
+  WITHDRAWAL
+  TRANSFER
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+model Transaction {
+  id               String             @id @default(uuid()) @db.Uuid
+  senderWalletId   String?            @db.Uuid
+  senderWallet     Wallet?            @relation("SenderWallet", fields: [senderWalletId], references: [id])
+  receiverWalletId String?            @db.Uuid
+  receiverWallet   Wallet?            @relation("ReceiverWallet", fields: [receiverWalletId], references: [id])
+  amount           Decimal            @db.Decimal(14, 2)
+  currency         String             @default("INR") @db.VarChar(3)
+  type             TransactionType
+  status           TransactionStatus  @default(PENDING)
+  reference        String             @unique
+  description      String?
+  createdAt        DateTime           @default(now())
+  completedAt      DateTime?
+
+  @@index([receiverWalletId, createdAt])
+  @@index([senderWalletId, createdAt])
+  @@map("transactions")
+}
+
+model RefreshToken {
+  id                String    @id @default(uuid()) @db.Uuid
+  tokenHash         String    @unique
+  userId            String    @db.Uuid
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt         DateTime
+  createdAt         DateTime  @default(now())
+  revokedAt         DateTime?
+  replacedByTokenId String?   @db.Uuid
+  createdByIp       String?
+  userAgent         String?
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+enum AuditEventType {
+  REGISTER
+  LOGIN_SUCCESS
+  LOGIN_FAILURE
+  LOGOUT
+  PASSWORD_CHANGE
+  PROFILE_UPDATE
+  WALLET_TOPUP
+  REFRESH_TOKEN_REUSE_DETECTED
+  TRANSFER_SENT
+}
+
+model AuditLog {
+  id        String         @id @default(uuid()) @db.Uuid
+  userId    String?        @db.Uuid
+  user      User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  eventType AuditEventType
+  ipAddress String?
+  userAgent String?
+  metadata  Json?
+  createdAt DateTime       @default(now())
+
+  @@index([userId, createdAt])
+  @@index([eventType, createdAt])
+  @@map("audit_logs")
+}
+
+model Beneficiary {
+  id          String   @id @default(uuid()) @db.Uuid
+  ownerUserId String   @db.Uuid
+  owner       User     @relation(fields: [ownerUserId], references: [id], onDelete: Cascade)
+  name        String
+  identifier  String
+  createdAt   DateTime @default(now())
+
+  @@unique([ownerUserId, identifier])
+  @@index([ownerUserId])
+  @@map("beneficiaries")
+}
