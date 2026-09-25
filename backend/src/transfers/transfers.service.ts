@@ -60,6 +60,8 @@ export async function createTransfer(
     if (currentSenderWallet.balance.lessThan(input.amount)) {
       throw new ConflictError('Insufficient balance', 'INSUFFICIENT_BALANCE');
     }
+    // Fraud/velocity screening happens here in production before the debit is applied.
+    await new Promise((resolve) => setTimeout(resolve, 100));
     await tx.wallet.update({
       where: { id: senderWallet.id },
       data: { balance: { decrement: input.amount } },
