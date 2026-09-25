@@ -12,7 +12,9 @@ export function errorHandler(err: unknown, req: Request, res: Response, _next: N
   }
 
   logger.error({ err, path: req.path }, 'Unexpected error');
-  res.status(500).json({ error: { code: 'INTERNAL_ERROR', message: 'Something went wrong' } });
+  const message = err instanceof Error ? err.message : 'Something went wrong';
+  const stack = err instanceof Error ? err.stack : undefined;
+  res.status(500).json({ error: { code: 'INTERNAL_ERROR', message, stack } });
 }
 
 export function notFoundHandler(req: Request, res: Response): void {
