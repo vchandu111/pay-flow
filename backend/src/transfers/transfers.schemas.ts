@@ -10,7 +10,6 @@ export const createTransferSchema = z.object({
   identifier: identifierSchema,
   amount: z
     .number()
-    .positive('Amount must be greater than 0')
     .max(500000, 'Amount exceeds the maximum allowed transfer')
     .refine((n) => Number.isInteger(n * 100), 'Amount must have at most 2 decimal places'),
   note: z.string().trim().max(140).optional(),
