@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client';
 import { prisma } from '../lib/prisma.js';
-import { ConflictError } from '../shared/errors.js';
+import { ConflictError, NotFoundError } from '../shared/errors.js';
 import { normalizeIdentifier } from '../shared/contact.js';
 import type { AddBeneficiaryInput } from './beneficiaries.schemas.js';
 
@@ -34,6 +34,17 @@ export async function addBeneficiary(ownerUserId: string, input: AddBeneficiaryI
   } catch (err) {
     if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
       throw new ConflictError('You already have a beneficiary with this email/phone', 'BENEFICIARY_EXISTS');
+    }
+    throw err;
+  }
+}
+
+export async function deleteBeneficiary(_callerUserId: string, id: string): Promise<void> {
+  try {
+    await prisma.beneficiary.delete({ where: { id } });
+  } catch (err) {
+    if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2025') {
+      throw new NotFoundError('Beneficiary not found');
     }
     throw err;
   }

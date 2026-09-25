@@ -20,3 +20,12 @@ export async function addBeneficiaryHandler(req: Request, res: Response, next: N
     next(err);
   }
 }
+
+export async function deleteBeneficiaryHandler(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    await beneficiariesService.deleteBeneficiary(req.user!.id, req.params.id as string);
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+}
