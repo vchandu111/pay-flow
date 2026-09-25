@@ -3,7 +3,6 @@ import { prisma } from '../lib/prisma.js';
 import { NotFoundError, UnauthorizedError } from '../shared/errors.js';
 import { writeAuditLog } from '../shared/audit.js';
 import { hashPassword, verifyPassword } from '../auth/password.js';
-import { revokeAllRefreshTokensForUser } from '../auth/tokens.js';
 import type { ChangePasswordInput, UpdateProfileInput } from './users.schemas.js';
 
 export interface ProfileDto {
@@ -70,10 +69,6 @@ export async function changePassword(userId: string, input: ChangePasswordInput,
 
   const passwordHash = await hashPassword(input.newPassword);
   await prisma.user.update({ where: { id: userId }, data: { passwordHash } });
-
-  // Force re-login on every other session — a compromised session shouldn't survive
-  // the legitimate owner changing their password.
-  await revokeAllRefreshTokensForUser(userId);
 
   await writeAuditLog(prisma, { userId, eventType: 'PASSWORD_CHANGE', req });
 }
