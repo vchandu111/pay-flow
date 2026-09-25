@@ -1,0 +1,127 @@
+{
+  "target": "backend",
+  "scanned_at": "2026-09-25T13:30:00+05:30",
+  "branch": "vuln-001-transaction-detail-idor",
+  "focus_areas": [
+    "Auth & session management (auth.controller/service/schemas, password, tokens, requireAuth)",
+    "Transactions read/query surface (transactions.controller/routes/schemas/service)",
+    "Transfers money movement (transfers.controller/routes/schemas/service)",
+    "Beneficiaries CRUD (beneficiaries.controller/routes/schemas/service)",
+    "Wallets balance/add-money (wallets.controller/routes/schemas/service, mockPaymentProvider)",
+    "Users profile (users.controller/routes/schemas/service)",
+    "Cross-cutting middleware & app wiring (app.ts, server.ts, middleware/*, config/*, shared/*, lib/*)"
+  ],
+  "findings": [
+    {
+      "id": "F-001",
+      "file": "backend/src/transactions/transactions.service.ts",
+      "line": 95,
+      "category": "idor",
+      "severity": "HIGH",
+      "confidence": 0.97,
+      "title": "getTransactionById does not verify the transaction belongs to the caller's wallet (IDOR)",
+      "description": "getTransactionById validates the id is UUID-shaped and fetches the caller's own wallet, but the Prisma query `findUnique({ where: { id }, ... })` filters only by transaction id, with no senderWalletId/receiverWalletId check against the caller's wallet. The fetched wallet is used only for DTO shaping afterward, not as an authorization gate. Contrast with listTransactions, which correctly scopes its query with `OR: [{ receiverWalletId }, { senderWalletId }]`.",
+      "exploit_scenario": "Any authenticated user who knows or guesses a valid transaction UUID belonging to another user (e.g. seen on a shared receipt, enumerated) can call GET /transactions/:id and receive the full transaction detail (counterparty names, amount, currency, status, timestamps) regardless of ownership.",
+      "recommendation": "Filter the Prisma lookup by ownership, e.g. findFirst({ where: { id, OR: [{ senderWalletId: wallet.id }, { receiverWalletId: wallet.id }] } }), and return NotFoundError (not Forbidden) when no row matches, to avoid existence leakage.",
+      "confidence_reason": "Verified directly in source: the ownership check present in the sibling listTransactions function is absent here; no ambiguity in the data flow."
+    },
+    {
+      "id": "F-002",
+      "file": "backend/src/app.ts",
+      "line": 22,
+      "category": "rate-limit-bypass",
+      "severity": "MEDIUM",
+      "confidence": 0.5,
+      "title": "`trust proxy: 1` lets client-controlled X-Forwarded-For bypass IP-based rate limiting",
+      "description": "app.set('trust proxy', 1) makes Express trust the left-most X-Forwarded-For entry as the client IP. express-rate-limit keys apiLimiter and authLimiter off this derived req.ip. If PayFlow isn't deployed behind exactly one trusted reverse proxy that overwrites inbound X-Forwarded-For, any client can set an arbitrary header value and land in a fresh rate-limit bucket per request.",
+      "exploit_scenario": "An attacker brute-forcing /api/auth/login sends a different X-Forwarded-For value on every request, defeating the 10-requests/15-minutes lockout entirely.",
+      "recommendation": "Set trust proxy to match actual deployment topology (specific proxy count/IP allowlist) or disable it; consider a rate-limit key that isn't solely attacker-suppliable for the auth routes.",
+      "confidence_reason": "Depends on deployment topology (whether a real trusted proxy sits in front and strips inbound XFF), which isn't verifiable from source alone."
+    },
+    {
+      "id": "F-003",
+      "file": "backend/src/transfers/transfers.service.ts",
+      "line": 54,
+      "category": "toctou-authorization",
+      "severity": "MEDIUM",
+      "confidence": 0.35,
+      "title": "Receiver wallet's ACTIVE status is not re-verified atomically at credit time (TOCTOU)",
+      "description": "The sender debit uses an atomic updateMany that re-checks status:'ACTIVE' at write time. The receiver credit has no equivalent: recipient wallet status is checked once before the DB transaction opens, but the actual balance increment has no status filter, so it succeeds even if the wallet was suspended in between.",
+      "exploit_scenario": "A wallet is suspended (fraud hold) while a transfer to it is already in flight; the credit still posts funds to the frozen wallet, defeating the suspension.",
+      "recommendation": "Make the credit conditional like the debit: updateMany({ where: { id: receiverWallet.id, status: 'ACTIVE' }, ... }) and roll back the transaction if count !== 1.",
+      "confidence_reason": "Real race window exists in the code, but requires a narrow timing coincidence (suspension landing mid-transfer) to matter in practice."
+    },
+    {
+      "id": "F-004",
+      "file": "backend/src/wallets/wallets.service.ts",
+      "line": 67,
+      "category": "business-logic-validation-gap",
+      "severity": "MEDIUM",
+      "confidence": 0.7,
+      "title": "Add-money (top-up) flow does not check wallet suspension status",
+      "description": "addMoney fetches the caller's wallet and credits it with no status check, while the sibling transfers module explicitly throws ForbiddenError('WALLET_SUSPENDED') for both sender and receiver when status isn't ACTIVE. Wallets.service.ts has no equivalent guard before crediting a top-up.",
+      "exploit_scenario": "A user whose wallet has been suspended by an admin/fraud action can still call POST /wallets/me/topups and have funds credited, inconsistent with how the rest of the app enforces suspension.",
+      "recommendation": "Check wallet.status !== 'ACTIVE' in addMoney (or centralize in getWalletForUser) and throw the same ForbiddenError used in transfers.service.ts.",
+      "confidence_reason": "Directly verified: the enforcement pattern exists elsewhere in the codebase and is simply absent here, a clear inconsistency."
+    },
+    {
+      "id": "F-005",
+      "file": "backend/src/auth/auth.service.ts",
+      "line": 61,
+      "category": "timing-side-channel",
+      "severity": "LOW",
+      "confidence": 0.3,
+      "title": "Login timing difference between \"unknown email\" and \"wrong password\" undermines account-enumeration defense",
+      "description": "login() is designed to return an identical error for unknown-email vs wrong-password, but the unknown-email path returns immediately after one DB lookup while the wrong-password path additionally awaits an argon2id verify (tens of ms of CPU work), creating a timing oracle despite the identical response body.",
+      "exploit_scenario": "An attacker measures login response latency across a list of candidate emails to distinguish registered from unregistered accounts, defeating the anti-enumeration design, for targeted phishing/credential-stuffing lists.",
+      "recommendation": "Equalize timing across both branches, e.g. always perform a dummy argon2 verify against a fixed hash when the user isn't found.",
+      "confidence_reason": "Real timing gap, but exploitation requires precise latency measurement and is partially mitigated by existing rate limiting."
+    },
+    {
+      "id": "F-006",
+      "file": "backend/src/transfers/transfers.schemas.ts",
+      "line": 15,
+      "category": "business-logic-validation",
+      "severity": "LOW",
+      "confidence": 0.5,
+      "title": "Floating-point precision check incorrectly rejects a fraction of valid 2-decimal amounts",
+      "description": "amount.refine(n => Number.isInteger(n * 100)) operates on IEEE-754 doubles; for values like 19.99, n*100 yields 1998.9999999999998, failing Number.isInteger and wrongly rejecting a valid amount. Verified: roughly 9% of whole-cent values in a sampled range are false-rejected. Same policy is reused in wallets.schemas.ts for top-ups.",
+      "exploit_scenario": "Not attacker-exploitable — a functional correctness bug where legitimate transfer/top-up amounts (e.g. 19.99) are rejected with a validation error.",
+      "recommendation": "Validate decimal precision without float multiplication, e.g. a string-pattern check (/^\\d+(\\.\\d{1,2})?$/) or a fixed-point/decimal library.",
+      "confidence_reason": "Verified numerically; not a security bypass, included per reporting-bar guidance to flag business-logic gaps in the money-movement path."
+    },
+    {
+      "id": "F-007",
+      "file": "backend/src/middleware/verifyOrigin.ts",
+      "line": 21,
+      "category": "csrf",
+      "severity": "LOW",
+      "confidence": 0.3,
+      "title": "CSRF Origin check silently passes when the Origin header is absent",
+      "description": "verifyOrigin only rejects when origin is present AND mismatched (origin && origin !== env.CORS_ORIGIN); a missing Origin header is treated identically to a trusted one and sails through with no check.",
+      "exploit_scenario": "A request without an Origin header (stripped by an intermediary, or sent by a non-browser client replaying a stolen cookie) bypasses origin validation entirely, provided it meets the JSON content-type requirement enforced upstream.",
+      "recommendation": "Fail closed: require Origin (or Referer fallback) to be present and match env.CORS_ORIGIN for mutating requests, rejecting when absent.",
+      "confidence_reason": "Real gap in the check's logic, but the code comment's stated threat model (browser-originated CSRF) may not require a Content-Type-less/no-Origin request to be practically reachable from a browser."
+    },
+    {
+      "id": "F-008",
+      "file": "backend/src/lib/logger.ts",
+      "line": 7,
+      "category": "sensitive-data-logging",
+      "severity": "LOW",
+      "confidence": 0.25,
+      "title": "Logger redaction list omits token fields (accessToken/refreshToken/token)",
+      "description": "pino redact configuration covers cookie and authorization headers and password fields, but not token/accessToken/refreshToken field names. Any future log call including a raw token object would not be redacted.",
+      "exploit_scenario": "A developer adds diagnostic logging in the token-issuance/rotation path that includes a raw token field; because it isn't in the redact list, tokens land in plaintext logs, letting anyone with log access hijack sessions.",
+      "recommendation": "Extend the redact paths list to include token/accessToken/refreshToken (and wildcard variants) as defense-in-depth.",
+      "confidence_reason": "Speculative — depends on a future/hypothetical logging call that doesn't currently exist in the reviewed files; defense-in-depth rather than a live vulnerability."
+    }
+  ],
+  "summary": {
+    "total": 8,
+    "high": 1,
+    "medium": 3,
+    "low": 4,
+    "low_confidence": 3
+  }
+}

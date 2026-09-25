@@ -1,0 +1,558 @@
+{
+  "project": "payflow",
+  "scanned_branch": "security-testing",
+  "sonar_host": "http://localhost:9000",
+  "dashboard_url": "http://localhost:9000/dashboard?id=payflow",
+  "scanned_at": "2026-09-25T15:27:09+05:30",
+  "summary": {
+    "total": 32,
+    "by_type": {
+      "CODE_SMELL": 32,
+      "BUG": 0,
+      "VULNERABILITY": 0
+    },
+    "by_severity": {
+      "BLOCKER": 0,
+      "CRITICAL": 0,
+      "MAJOR": 3,
+      "MINOR": 29,
+      "INFO": 0
+    },
+    "security_hotspots": 0,
+    "security_rating": "1.0 (A)",
+    "reliability_rating": "1.0 (A)",
+    "maintainability_rating": "1.0 (A)"
+  },
+  "note": "Scanned on the security-testing branch, which contains all 18 deliberately injected vulnerabilities (see VULN-FINDINGS.json in repo root for the AI-based scan of the same branch). SonarQube reported 0 vulnerabilities and 0 security hotspots despite this -- all 32 findings below are non-security code smells (style/accessibility/best-practice).",
+  "issues": [
+    {
+      "key": "c6161f39-1e46-497d-b7d6-df9a1ee14163",
+      "rule": "typescript:S1874",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "backend/src/users/users.schemas.ts",
+      "line": 17,
+      "message": "'(): ZodObject<{ name: ZodOptional<ZodString>; phone: ZodOptional<ZodString>; dateOfBirth: ZodOptional<ZodString>; address: ZodOptional<...>; }, $loose>' is deprecated.",
+      "status": "OPEN",
+      "effort": "15min",
+      "tags": [
+        "cwe",
+        "type-dependent",
+        "obsolete"
+      ],
+      "creationDate": "2026-09-25T09:34:30+0530"
+    },
+    {
+      "key": "7a9545c4-9123-40b9-a612-a9d805f0bacc",
+      "rule": "typescript:S6353",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "backend/src/auth/auth.schemas.ts",
+      "line": 11,
+      "message": "Use concise character class syntax '\\d' instead of '[0-9]'.",
+      "status": "OPEN",
+      "effort": "5min",
+      "tags": [
+        "regex",
+        "editable-source",
+        "type-dependent"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "ce5cc0e0-01f2-40fe-a7a0-5825a2e3092c",
+      "rule": "typescript:S7786",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "backend/src/auth/tokens.ts",
+      "line": 27,
+      "message": "`new Error()` is too unspecific for a type check. Use `new TypeError()` instead.",
+      "status": "OPEN",
+      "effort": "2min",
+      "tags": [
+        "convention",
+        "error-handling",
+        "editable-source",
+        "type-checking"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "27f10cc4-67f5-452f-9563-0c13903f356e",
+      "rule": "typescript:S1874",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "backend/src/config/env.ts",
+      "line": 26,
+      "message": "The signature '(): $ZodFlattenedError<{ NODE_ENV: \"development\" | \"test\" | \"production\"; PORT: number; DATABASE_URL: string; ACCESS_TOKEN_SECRET: string; REFRESH_TOKEN_SECRET: string; ACCESS_TOKEN_TTL: string; REFRESH_TOKEN_TTL_DAYS: number; COOKIE_DOMAIN: string; CORS_ORIGIN: string; }, string>' of 'parsed.error.flatten' is deprecated.",
+      "status": "OPEN",
+      "effort": "15min",
+      "tags": [
+        "cwe",
+        "type-dependent",
+        "obsolete"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "e98f997a-c942-46e6-bcaa-2e62972eb55a",
+      "rule": "typescript:S1874",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "backend/src/middleware/validate.ts",
+      "line": 2,
+      "message": "'ZodTypeAny' is deprecated.",
+      "status": "OPEN",
+      "effort": "15min",
+      "tags": [
+        "cwe",
+        "type-dependent",
+        "obsolete"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "af40d05a-b0e8-400d-990c-e9be02a5d315",
+      "rule": "typescript:S1874",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "backend/src/middleware/validate.ts",
+      "line": 6,
+      "message": "'ZodTypeAny' is deprecated.",
+      "status": "OPEN",
+      "effort": "15min",
+      "tags": [
+        "cwe",
+        "type-dependent",
+        "obsolete"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "9d87baf6-b260-439d-8ce3-a8f007a4de68",
+      "rule": "typescript:S1874",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "backend/src/middleware/validate.ts",
+      "line": 7,
+      "message": "'ZodTypeAny' is deprecated.",
+      "status": "OPEN",
+      "effort": "15min",
+      "tags": [
+        "cwe",
+        "type-dependent",
+        "obsolete"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "b01473f1-e621-4341-98dd-0f5d3b13e550",
+      "rule": "typescript:S6353",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "backend/src/shared/contact.ts",
+      "line": 3,
+      "message": "Use concise character class syntax '\\d' instead of '[0-9]'.",
+      "status": "OPEN",
+      "effort": "5min",
+      "tags": [
+        "regex",
+        "editable-source",
+        "type-dependent"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "c902fbaf-dec1-42a2-9889-2268b93da8f6",
+      "rule": "typescript:S6582",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "backend/src/transfers/transfers.service.ts",
+      "line": 29,
+      "message": "Prefer using an optional chain expression instead, as it's more concise and easier to read.",
+      "status": "OPEN",
+      "effort": "5min",
+      "tags": [
+        "editable-source",
+        "type-dependent",
+        "es2020"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "407e9020-8e07-43f9-9952-b7caf7c71b26",
+      "rule": "typescript:S6759",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "frontend/src/components/Button.tsx",
+      "line": 12,
+      "message": "Mark the props of the component as read-only.",
+      "status": "OPEN",
+      "effort": "5min",
+      "tags": [
+        "type-dependent",
+        "react"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "1c41ae87-5b3c-451d-a59b-b8baaf719c98",
+      "rule": "typescript:S6759",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "frontend/src/components/Card.tsx",
+      "line": 3,
+      "message": "Mark the props of the component as read-only.",
+      "status": "OPEN",
+      "effort": "5min",
+      "tags": [
+        "type-dependent",
+        "react"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "16daed6d-57fb-456c-bd3c-838348cc6af6",
+      "rule": "typescript:S6759",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "frontend/src/components/ProtectedRoute.tsx",
+      "line": 5,
+      "message": "Mark the props of the component as read-only.",
+      "status": "OPEN",
+      "effort": "5min",
+      "tags": [
+        "type-dependent",
+        "react"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "2bf66d34-866f-424d-bf13-4396b6c9d9e6",
+      "rule": "typescript:S6759",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "frontend/src/features/auth/AuthContext.tsx",
+      "line": 17,
+      "message": "Mark the props of the component as read-only.",
+      "status": "OPEN",
+      "effort": "5min",
+      "tags": [
+        "type-dependent",
+        "react"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "4c9b0651-3460-43c8-95ad-ca3e5cb806fa",
+      "rule": "typescript:S6481",
+      "type": "CODE_SMELL",
+      "severity": "MAJOR",
+      "component": "frontend/src/features/auth/AuthContext.tsx",
+      "line": 44,
+      "message": "The object passed as the value prop to the Context provider changes every render. To fix this consider wrapping it in a useMemo hook.",
+      "status": "OPEN",
+      "effort": "5min",
+      "tags": [
+        "performance",
+        "react",
+        "jsx"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "c26178a5-8829-4928-88bc-a8f118019a24",
+      "rule": "typescript:S6353",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "frontend/src/features/auth/schemas.ts",
+      "line": 8,
+      "message": "Use concise character class syntax '\\d' instead of '[0-9]'.",
+      "status": "OPEN",
+      "effort": "5min",
+      "tags": [
+        "regex",
+        "editable-source",
+        "type-dependent"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "f8e41d3c-91a7-4ea8-b062-cff646f3d9d7",
+      "rule": "typescript:S6353",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "frontend/src/features/auth/schemas.ts",
+      "line": 14,
+      "message": "Use concise character class syntax '\\d' instead of '[0-9]'.",
+      "status": "OPEN",
+      "effort": "5min",
+      "tags": [
+        "regex",
+        "editable-source",
+        "type-dependent"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "1675ec1b-7e3f-42e9-8a9b-f9735d032acc",
+      "rule": "typescript:S6759",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "frontend/src/features/beneficiaries/AddBeneficiaryForm.tsx",
+      "line": 16,
+      "message": "Mark the props of the component as read-only.",
+      "status": "OPEN",
+      "effort": "5min",
+      "tags": [
+        "type-dependent",
+        "react"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "d4b304f1-767b-4eb1-adaa-c362f696d27d",
+      "rule": "typescript:S6819",
+      "type": "CODE_SMELL",
+      "severity": "MAJOR",
+      "component": "frontend/src/features/beneficiaries/AddBeneficiaryForm.tsx",
+      "line": 37,
+      "message": "Use <dialog> instead of the \"dialog\" role to ensure accessibility across all devices.",
+      "status": "OPEN",
+      "effort": "5min",
+      "tags": [
+        "accessibility",
+        "react"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "db44f575-83e9-4e20-80c3-8188c2bed6ff",
+      "rule": "typescript:S6759",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "frontend/src/features/beneficiaries/BeneficiaryList.tsx",
+      "line": 3,
+      "message": "Mark the props of the component as read-only.",
+      "status": "OPEN",
+      "effort": "5min",
+      "tags": [
+        "type-dependent",
+        "react"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "bcc7e78a-66b2-4401-87d7-cdbfbfb08fb2",
+      "rule": "typescript:S6353",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "frontend/src/features/beneficiaries/schemas.ts",
+      "line": 4,
+      "message": "Use concise character class syntax '\\d' instead of '[0-9]'.",
+      "status": "OPEN",
+      "effort": "5min",
+      "tags": [
+        "regex",
+        "editable-source",
+        "type-dependent"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "04859499-8941-4b73-826b-e45d8d3dd6e1",
+      "rule": "typescript:S6759",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "frontend/src/features/profile/ChangePasswordForm.tsx",
+      "line": 11,
+      "message": "Mark the props of the component as read-only.",
+      "status": "OPEN",
+      "effort": "5min",
+      "tags": [
+        "type-dependent",
+        "react"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "3b00110e-9fe4-4486-91db-1dc035f0f58f",
+      "rule": "typescript:S6759",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "frontend/src/features/profile/ProfileForm.tsx",
+      "line": 17,
+      "message": "Mark the props of the component as read-only.",
+      "status": "OPEN",
+      "effort": "5min",
+      "tags": [
+        "type-dependent",
+        "react"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "136e59e7-7dfe-4bbc-86c2-918600dedba6",
+      "rule": "typescript:S6759",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "frontend/src/features/profile/ProfileForm.tsx",
+      "line": 102,
+      "message": "Mark the props of the component as read-only.",
+      "status": "OPEN",
+      "effort": "5min",
+      "tags": [
+        "type-dependent",
+        "react"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "814e104a-e2a5-457a-9b97-266e7bd85dd1",
+      "rule": "typescript:S6353",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "frontend/src/features/profile/schemas.ts",
+      "line": 6,
+      "message": "Use concise character class syntax '\\d' instead of '[0-9]'.",
+      "status": "OPEN",
+      "effort": "5min",
+      "tags": [
+        "regex",
+        "editable-source",
+        "type-dependent"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "19b510da-8649-4c36-8569-6c89fd7b511c",
+      "rule": "typescript:S6353",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "frontend/src/features/profile/schemas.ts",
+      "line": 19,
+      "message": "Use concise character class syntax '\\d' instead of '[0-9]'.",
+      "status": "OPEN",
+      "effort": "5min",
+      "tags": [
+        "regex",
+        "editable-source",
+        "type-dependent"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "cf0deeb1-390e-4a19-8c9a-7cd075e288a3",
+      "rule": "typescript:S6353",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "frontend/src/features/transfers/schemas.ts",
+      "line": 4,
+      "message": "Use concise character class syntax '\\d' instead of '[0-9]'.",
+      "status": "OPEN",
+      "effort": "5min",
+      "tags": [
+        "regex",
+        "editable-source",
+        "type-dependent"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "ab1881ee-0247-4502-adba-2104f7aa77a6",
+      "rule": "typescript:S6759",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "frontend/src/features/wallet/AddMoneyModal.tsx",
+      "line": 16,
+      "message": "Mark the props of the component as read-only.",
+      "status": "OPEN",
+      "effort": "5min",
+      "tags": [
+        "type-dependent",
+        "react"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "6e86d2a5-a75d-463b-aff5-b86e34e1b8c4",
+      "rule": "typescript:S6819",
+      "type": "CODE_SMELL",
+      "severity": "MAJOR",
+      "component": "frontend/src/features/wallet/AddMoneyModal.tsx",
+      "line": 37,
+      "message": "Use <dialog> instead of the \"dialog\" role to ensure accessibility across all devices.",
+      "status": "OPEN",
+      "effort": "5min",
+      "tags": [
+        "accessibility",
+        "react"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "eb45baf9-c0d7-411d-b15f-e0055fbcb827",
+      "rule": "typescript:S6759",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "frontend/src/features/wallet/TransactionList.tsx",
+      "line": 5,
+      "message": "Mark the props of the component as read-only.",
+      "status": "OPEN",
+      "effort": "5min",
+      "tags": [
+        "type-dependent",
+        "react"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "4bec30a9-e31e-4883-9efa-047240d84198",
+      "rule": "typescript:S6759",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "frontend/src/features/wallet/WalletSummary.tsx",
+      "line": 5,
+      "message": "Mark the props of the component as read-only.",
+      "status": "OPEN",
+      "effort": "5min",
+      "tags": [
+        "type-dependent",
+        "react"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "c6f4af1b-f89e-4856-ad18-a15f2dc7c467",
+      "rule": "typescript:S6759",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "frontend/src/pages/SendMoneyPage.tsx",
+      "line": 142,
+      "message": "Mark the props of the component as read-only.",
+      "status": "OPEN",
+      "effort": "5min",
+      "tags": [
+        "type-dependent",
+        "react"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    },
+    {
+      "key": "25005953-e6d9-4a9e-90d7-e95b6570e691",
+      "rule": "typescript:S6759",
+      "type": "CODE_SMELL",
+      "severity": "MINOR",
+      "component": "frontend/src/pages/TransactionDetailPage.tsx",
+      "line": 73,
+      "message": "Mark the props of the component as read-only.",
+      "status": "OPEN",
+      "effort": "5min",
+      "tags": [
+        "type-dependent",
+        "react"
+      ],
+      "creationDate": "2026-09-25T09:32:42+0530"
+    }
+  ]
+}

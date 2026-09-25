@@ -11,6 +11,7 @@ export default defineConfig({
     proxy: {
       '/api': 'http://localhost:4000',
     },
+    allowedHosts: ['host.docker.internal'],
   },
   test: {
     environment: 'jsdom',

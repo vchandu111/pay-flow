@@ -1,0 +1,56 @@
+{
+  "triage_completed": true,
+  "triage_context": {
+    "mode": "manual (following anthropics/defending-code-reference-harness /triage methodology)",
+    "environment": "Internet-facing web service (HTTP is untrusted); callers are authenticated end users",
+    "threat_model": ["Tenant-to-tenant data leakage / tampering across accounts"],
+    "scoring": "Derived HIGH/MEDIUM/LOW from preconditions",
+    "noise_tolerance": "precision",
+    "votes_per_finding": 3,
+    "repo": "backend"
+  },
+  "summary": {
+    "input_count": 1,
+    "duplicates": 0,
+    "false_positives": 0,
+    "true_positives": 1,
+    "needs_manual_test": 0,
+    "by_severity": { "HIGH": 0, "MEDIUM": 1, "LOW": 0 }
+  },
+  "findings": [
+    {
+      "id": "f001",
+      "source": "manual-scan#beneficiaries",
+      "title": "deleteBeneficiary deletes by id alone, ignoring caller identity (IDOR)",
+      "file": "backend/src/beneficiaries/beneficiaries.service.ts",
+      "line": 42,
+      "category": "auth-bypass (IDOR / broken access control)",
+      "claimed_severity": "HIGH",
+      "verdict": "true_positive",
+      "verify_verdict": "exploitable",
+      "confidence": 9.0,
+      "severity": "MEDIUM",
+      "severity_label": "MEDIUM",
+      "severity_alignment": -2,
+      "preconditions": [
+        "Attacker must be an authenticated user (any registered account; self-serve signup)",
+        "Attacker must know or guess the target beneficiary's UUID (not exposed by id-enumeration, but can leak via logs, referrer, shared screen, support tickets, or a future endpoint)"
+      ],
+      "access_level": "authenticated",
+      "threat_match": "Tenant-to-tenant data leakage / tampering across accounts",
+      "rationale": "All 3 independent verifiers confirm TRUE_POSITIVE at confidence 9/10. deleteBeneficiaryHandler (beneficiaries.controller.ts:26) passes req.user!.id straight through to beneficiariesService.deleteBeneficiary, reached via DELETE /:id (beneficiaries.routes.ts:9,13) gated only by requireAuth, which verifies the session but performs no per-resource ownership check. deleteBeneficiary(_callerUserId, id) (beneficiaries.service.ts:42-51) never references the underscore-prefixed _callerUserId parameter and executes prisma.beneficiary.delete({ where: { id } }) with no ownerUserId predicate. listBeneficiaries and addBeneficiary in the same file both correctly scope by ownerUserId, confirming this is an inconsistency/omission rather than intended design. Severity derived as MEDIUM rather than the scanner's claimed HIGH because exploitation requires an authenticated attacker (not unauthenticated-remote) plus knowledge of a specific target UUID -- 2 preconditions, authenticated access per the precondition/access-level table -- though the blast radius (silent cross-account data destruction) argues for prompt remediation regardless of the derived label.",
+      "vote_breakdown": { "true_positive": 3, "false_positive": 0, "cannot_verify": 0 },
+      "refute_reasons": [],
+      "exclusion_rule": null,
+      "first_links": [
+        "backend/src/beneficiaries/beneficiaries.controller.ts:26",
+        "backend/src/beneficiaries/beneficiaries.routes.ts:9",
+        "backend/src/beneficiaries/beneficiaries.routes.ts:13"
+      ],
+      "duplicate_of": null,
+      "absorbed": [],
+      "owner_hint": "component: beneficiaries/; top committer chandra sekhar (per git log)",
+      "missing_fields": []
+    }
+  ]
+}

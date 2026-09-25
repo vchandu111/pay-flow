@@ -15,3 +15,6 @@ npm-debug.log*
 
 # Postgres local data dir (Homebrew-based dev setup)
 .postgres-data/
+
+# SonarQube scanner local cache
+.scannerwork/
