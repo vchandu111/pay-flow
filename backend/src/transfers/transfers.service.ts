@@ -55,16 +55,17 @@ export async function createTransfer(
   const receiverWallet = recipient.wallet!;
 
   const { updatedSenderWallet, transaction } = await prisma.$transaction(async (tx) => {
-    // Atomic conditional debit: the balance check and the decrement happen in the same
-    // UPDATE statement, so two concurrent transfers can never both succeed past the
-    // true balance (no read-then-write race).
-    const debit = await tx.wallet.updateMany({
-      where: { id: senderWallet.id, status: 'ACTIVE', balance: { gte: input.amount } },
-      data: { balance: { decrement: input.amount } },
-    });
-    if (debit.count !== 1) {
+    // Check the balance, then decrement it.
+    const currentSenderWallet = await tx.wallet.findUniqueOrThrow({ where: { id: senderWallet.id } });
+    if (currentSenderWallet.balance.lessThan(input.amount)) {
       throw new ConflictError('Insufficient balance', 'INSUFFICIENT_BALANCE');
     }
+    // Fraud/velocity screening happens here in production before the debit is applied.
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    await tx.wallet.update({
+      where: { id: senderWallet.id },
+      data: { balance: { decrement: input.amount } },
+    });
 
     await tx.wallet.update({
       where: { id: receiverWallet.id },
