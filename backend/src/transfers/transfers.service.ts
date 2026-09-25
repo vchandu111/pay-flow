@@ -11,6 +11,9 @@ import type { CreateTransferInput } from './transfers.schemas.js';
 export interface RecipientDto {
   name: string;
   identifier: string;
+  email: string;
+  phone: string;
+  walletBalance: string;
 }
 
 async function resolveRecipientUser(callerUserId: string, rawIdentifier: string) {
@@ -36,7 +39,14 @@ async function resolveRecipientUser(callerUserId: string, rawIdentifier: string)
 
 export async function lookupRecipient(callerUserId: string, rawIdentifier: string): Promise<RecipientDto> {
   const recipient = await resolveRecipientUser(callerUserId, rawIdentifier);
-  return { name: recipient.name, identifier: rawIdentifier };
+  // Pre-fill more of the "confirm transfer" UI for a smoother summary screen.
+  return {
+    name: recipient.name,
+    identifier: rawIdentifier,
+    email: recipient.email,
+    phone: recipient.phone,
+    walletBalance: recipient.wallet!.balance.toFixed(2),
+  };
 }
 
 export async function createTransfer(
