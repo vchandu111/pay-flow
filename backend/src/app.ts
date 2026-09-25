@@ -6,7 +6,6 @@ import { pinoHttp } from 'pino-http';
 import { env, isProduction } from './config/env.js';
 import { logger } from './lib/logger.js';
 import { apiLimiter } from './middleware/rateLimit.js';
-import { verifyOrigin } from './middleware/verifyOrigin.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { authRouter } from './auth/auth.routes.js';
 import { usersRouter } from './users/users.routes.js';
@@ -34,7 +33,6 @@ export function createApp(): Express {
   app.use(pinoHttp({ logger, autoLogging: env.NODE_ENV !== 'test' }));
 
   app.use('/api', apiLimiter);
-  app.use('/api', verifyOrigin);
 
   app.get('/api/health', (_req, res) => {
     res.status(200).json({ status: 'ok' });
