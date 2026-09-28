@@ -1,0 +1,11 @@
+{
+  "phase": 2,
+  "dedup_notes": "Deterministic pass (2a): f002 and f026 clustered (same file backend/src/auth/password.ts, same category weak-crypto, lines 3 and 9, within 10) -> canonical f002, absorbed f026. Semantic pass (2b): subagent proposed GROUP: f015 <- f013 (access-token-in-JSON-body vs access-token-in-localStorage). Orchestrator override: NOT merged. Rationale: different files/layers (backend auth.controller.ts vs frontend authApi.ts), independently exploitable (direct localStorage.getItem() needs no network interception, vs f015 requiring fetch/XHR interception), and independently fixable (removing the backend JSON field does not remove the frontend's dangerous localStorage-write pattern, which would reactivate if any other flow ever returns a token in a body). Kept as two distinct candidates so Phase 3 verifies each independently.",
+  "candidates": ["f001","f002","f003","f004","f005","f006","f007","f008","f009","f010","f011","f012","f013","f014","f015","f016","f017","f018","f019","f020","f021","f022","f023","f024","f025","f027","f028"],
+  "duplicate_updates": [
+    {"id": "f026", "verdict": "duplicate", "duplicate_of": "f002"}
+  ],
+  "absorbed_updates": [
+    {"id": "f002", "absorbed": ["f026"]}
+  ]
+}

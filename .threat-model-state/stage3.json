@@ -1,0 +1,26 @@
+{
+  "stage": 3,
+  "section4_threats": [
+    {"threat": "Account takeover and financial-record exposure via broken object-level authorization on transaction and beneficiary records", "actor": "remote_auth", "surface": "Authenticated API routes (users/wallets/transfers/beneficiaries/transactions), Object-reference & mass-assignment boundary", "asset": "Transaction/transfer ledger, Beneficiary PII, User credentials & PII", "impact": "critical", "likelihood": "almost_certain", "status": "unmitigated", "controls": "none", "evidence": "VULN-001, VULN-002, TRIAGE-vuln-002"},
+    {"threat": "Account hijack via mass assignment on the profile-update endpoint", "actor": "remote_auth", "surface": "Object-reference & mass-assignment boundary", "asset": "User credentials & PII", "impact": "critical", "likelihood": "almost_certain", "status": "unmitigated", "controls": "none", "evidence": "VULN-003"},
+    {"threat": "Data exfiltration or corruption via SQL injection in transaction search", "actor": "remote_auth", "surface": "Transactions free-text search", "asset": "Transaction/transfer ledger, Underlying Postgres database", "impact": "critical", "likelihood": "almost_certain", "status": "unmitigated", "controls": "none", "evidence": "VULN-013"},
+    {"threat": "Cross-origin account takeover via permissive CORS combined with absent CSRF defense", "actor": "remote_unauth", "surface": "CORS policy, CSRF Origin-check (verifyOrigin)", "asset": "User credentials & PII, Auth/session tokens, Wallet balance, Transaction/transfer ledger, Beneficiary PII", "impact": "critical", "likelihood": "almost_certain", "status": "unmitigated", "controls": "none", "evidence": "VULN-012, VULN-018, SCAN-F007-csrf-failopen"},
+    {"threat": "Wallet balance corruption or fraud via business-logic gaps in transfer amount validation and check-then-act balance updates", "actor": "remote_auth", "surface": "Transfer creation business logic", "asset": "Wallet balance, Transaction/transfer ledger", "impact": "critical", "likelihood": "almost_certain", "status": "unmitigated", "controls": "prisma $transaction wraps the writes; Decimal type for balance", "evidence": "VULN-004, VULN-005, VULN-006, SCAN-F003-receiver-status, SCAN-F004-addmoney, SCAN-idempotency"},
+    {"threat": "Credential compromise via weak password hashing, brute-forceable auth, forgeable tokens, and sessions that survive a password change", "actor": "remote_unauth", "surface": "Auth routes (register/login/refresh/logout), requireAuth / JWT verification, Auth rate limiting, Password change / session revocation, Supply chain / dependency versions", "asset": "User credentials & PII, Auth/session tokens, Service availability", "impact": "critical", "likelihood": "almost_certain", "status": "unmitigated", "controls": "refresh-token rotation with reuse detection", "evidence": "VULN-008, VULN-009, VULN-010, VULN-011, VULN-017, SCAN-F002-trustproxy"},
+    {"threat": "Session hijack via XSS-accessible token storage combined with unsanitized stored-content rendering", "actor": "remote_auth", "surface": "Stored content rendering / recipient lookup exposure, Client-side token storage", "asset": "Auth/session tokens, User credentials & PII", "impact": "critical", "likelihood": "almost_certain", "status": "unmitigated", "controls": "none", "evidence": "VULN-007, VULN-014, VULN-016"}
+  ],
+  "mitigation_notes": [
+    {"cluster": "IDOR", "recommended_mitigation": "Add a centralized ownership/authorization check instead of ad-hoc per-service checks"},
+    {"cluster": "mass_assignment", "recommended_mitigation": "Replace .passthrough() schemas with strict allowlisted schemas"},
+    {"cluster": "sqli", "recommended_mitigation": "Parameterize all raw SQL and apply validate() uniformly"},
+    {"cluster": "cors_csrf", "recommended_mitigation": "Allowlist CORS origins from env config and re-mount CSRF Origin-check"},
+    {"cluster": "money_movement", "recommended_mitigation": "Atomic conditional balance updates + amount validation + idempotency keys"},
+    {"cluster": "weak_auth", "recommended_mitigation": "Restore argon2id, wire authLimiter, fix trust-proxy keying, pin jsonwebtoken, revoke sessions on password change"},
+    {"cluster": "xss_token", "recommended_mitigation": "Drop localStorage/JSON-body token exposure, sanitize user HTML before render"}
+  ],
+  "sibling_locations": [
+    {"threat": "IDOR", "locations": ["backend/src/transactions/transactions.service.ts:149 getTransactionById", "backend/src/beneficiaries/beneficiaries.service.ts:44 deleteBeneficiary"]},
+    {"threat": "sqli", "locations": ["only one $queryRawUnsafe sink found repo-wide: transactions.service.ts searchTransactionsByDescription"]},
+    {"threat": "stored_xss", "locations": ["only one dangerouslySetInnerHTML sink found repo-wide: frontend/src/pages/TransactionDetailPage.tsx:62"]}
+  ]
+}

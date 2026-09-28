@@ -1,0 +1,19 @@
+{
+  "stage": 4,
+  "section4_gapfill_threats": [
+    {"threat": "Elevation of privilege via missing centralized authorization layer, making the next endpoint added the same way as transactions/beneficiaries just as likely to omit its ownership filter", "actor": "remote_auth", "surface": "Authenticated API routes (users/wallets/transfers/beneficiaries/transactions), Object-reference & mass-assignment boundary", "asset": "Transaction/transfer ledger, Beneficiary PII, User credentials & PII", "impact": "critical", "likelihood": "likely", "status": "unmitigated", "controls": "none", "evidence": ""},
+    {"threat": "Tampering with transaction-ledger history via direct database access going undetected, since balances are a mutable running total with no append-only journal or checksum chain independent of the wallet row", "actor": "insider", "surface": "Transfer creation business logic", "asset": "Transaction/transfer ledger, Audit log integrity", "impact": "high", "likelihood": "possible", "status": "unmitigated", "controls": "none", "evidence": ""},
+    {"threat": "Future dependency drift (like the jsonwebtoken downgrade) shipping unnoticed due to absence of automated dependency/CI security scanning", "actor": "supply_chain", "surface": "Supply chain / dependency versions", "asset": "Auth/session tokens, Underlying Postgres database", "impact": "high", "likelihood": "possible", "status": "unmitigated", "controls": "none", "evidence": ""}
+  ],
+  "section4_remaining_threats": [
+    {"threat": "Information disclosure of internal implementation details via verbose error responses", "actor": "remote_auth", "surface": "Error handler", "asset": "Underlying Postgres database, User credentials & PII", "impact": "medium", "likelihood": "almost_certain", "status": "unmitigated", "controls": "none", "evidence": "VULN-015"},
+    {"threat": "Clickjacking and reduced defense-in-depth via missing security headers", "actor": "remote_unauth", "surface": "CORS policy", "asset": "Auth/session tokens, User credentials & PII", "impact": "medium", "likelihood": "likely", "status": "partially_mitigated", "controls": "helmet used; CSP gated to production only, unverified any production deployment exists", "evidence": "ZAP-headers"},
+    {"threat": "Lateral access to the dev database via hardcoded, over-privileged credentials committed to a tracked setup script", "actor": "local_user", "surface": "Local dev infrastructure", "asset": "Underlying Postgres database", "impact": "low", "likelihood": "likely", "status": "unmitigated", "controls": "none", "evidence": "INFRA-dbcreds"}
+  ],
+  "section5_deprioritized": [
+    {"threat": "Repudiation via insufficient request/action logging", "reason": "pino-http request logging plus AuditLog business-event logging already cover the actors that exist today (single account holder per session, no shared/admin accounts yet)"},
+    {"threat": "Adjacent-network / physical MITM threats (ARP spoofing, rogue Wi-Fi)", "reason": "out of scope - local dev-only deployment today, no network topology to model"},
+    {"threat": "Cloud/insider threats to hosting infrastructure (IAM over-grant, lateral SA assumption)", "reason": "asset not present - no Terraform/k8s/cloud IaC exists in this repo yet"},
+    {"threat": "Resource-exhaustion DoS via untrusted file/media parsing", "reason": "asset not present - app has no file-upload or media-parsing entry point"}
+  ]
+}

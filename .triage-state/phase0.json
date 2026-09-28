@@ -1,0 +1,13 @@
+{
+  "phase": 0,
+  "context": {
+    "mode": "interactive",
+    "environment": "Internet-facing web service (PayFlow HTTP API) - treat request bodies, query params, and headers as untrusted, even though this checkout currently only runs locally.",
+    "threat_model": ["Tenant-to-tenant data leakage (one user reading/modifying another user's records)"],
+    "scoring": "Derived HIGH/MEDIUM/LOW from preconditions",
+    "noise_tolerance": "recall",
+    "votes_per_finding": 3,
+    "repo": "/Users/chandrasekhar/Desktop/Payflow",
+    "findings_path": "/Users/chandrasekhar/Desktop/Payflow/VULN-FINDINGS.json"
+  }
+}

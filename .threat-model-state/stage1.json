@@ -1,0 +1,43 @@
+{
+  "stage": 1,
+  "swarm": {
+    "docs_reader": "PayFlow is a fictional digital wallet / money-transfer platform built as a security-training reference app, not a real product. Node20/TS/Express5/Prisma6/Postgres16 backend (argon2id passwords, JWT access+refresh cookies, helmet, rate-limiting); React19/TS/Vite/Tailwind frontend; npm workspaces monorepo. main@v1.0.0-clean-baseline is a frozen 'clean' baseline per details.md section16 (proper authz, validation, parameterized queries, secure hashing, audit logging, security headers, rate limiting, no committed secrets, tests). 18 vuln-* branches each inject one CWE-mapped bug from the clean baseline for a scanner-comparison exercise (documented lifecycle CLEAN->inject->VULNERABLE->scan->FINDING->AI analysis->ROOT CAUSE->FIX->VERIFICATION->CLEAN). demo-script.md documents SonarQube finding 0/18 injected vulns vs AI review finding most of them. .env.example names: DATABASE_URL, TEST_DATABASE_URL, PORT, NODE_ENV, ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET, ACCESS_TOKEN_TTL, REFRESH_TOKEN_TTL_DAYS, COOKIE_DOMAIN, CORS_ORIGIN. Small early-stage project, Phase1+2 built, Phase3(ops portal/roles)+4 speced not built; 14 backend Jest/Supertest test files, frontend Vitest+RTL.",
+    "surface_mapper": [
+      {"entry_point": "HTTP routes (auth)", "description": "register/login/refresh/logout", "trust_boundary": "unauth HTTP -> app logic (issues session)", "file_refs": ["backend/src/auth/auth.routes.ts", "backend/src/auth/auth.controller.ts"]},
+      {"entry_point": "HTTP routes (beneficiaries/transfers/transactions/users/wallets)", "description": "mounted with router.use(requireAuth)", "trust_boundary": "authenticated user -> own data (scoped by req.user.id in service layer)", "file_refs": ["backend/src/beneficiaries/beneficiaries.routes.ts", "backend/src/transfers/transfers.routes.ts", "backend/src/transactions/transactions.routes.ts", "backend/src/users/users.routes.ts", "backend/src/wallets/wallets.routes.ts"]},
+      {"entry_point": "requireAuth middleware", "description": "reads payflow_at httpOnly cookie, verifies JWT, sets req.user.id", "trust_boundary": "unauth request -> authenticated context", "file_refs": ["backend/src/middleware/requireAuth.ts", "backend/src/auth/tokens.ts"]},
+      {"entry_point": "validate middleware", "description": "Zod safeParse on body/query, 400 on failure", "trust_boundary": "untrusted input -> typed input", "file_refs": ["backend/src/middleware/validate.ts"]},
+      {"entry_point": "rateLimit middleware", "description": "apiLimiter (300/15min) global; authLimiter (10/15min) defined but NOT wired anywhere", "trust_boundary": "n/a - gap", "file_refs": ["backend/src/middleware/rateLimit.ts", "backend/src/app.ts"]},
+      {"entry_point": "verifyOrigin middleware", "description": "CSRF Origin-check defense-in-depth, implemented but never app.use()'d in app.ts", "trust_boundary": "cross-origin browser -> state-changing request (currently unenforced)", "file_refs": ["backend/src/middleware/verifyOrigin.ts", "backend/src/app.ts"]},
+      {"entry_point": "CORS config", "description": "cors({origin:true, credentials:true}) reflects any Origin and allows credentials", "trust_boundary": "any external website -> victim's authenticated session", "file_refs": ["backend/src/app.ts:30"]},
+      {"entry_point": "Token issuance/verification", "description": "15min httpOnly/sameSite=lax access JWT + rotating hashed refresh token (httpOnly/sameSite=strict) with reuse detection revoking chain", "trust_boundary": "n/a - well-designed control", "file_refs": ["backend/src/auth/tokens.ts"]},
+      {"entry_point": "Transactions search endpoint", "description": "searchTransactionsByDescription builds SQL via string interpolation of user-controlled q into prisma.$queryRawUnsafe; no validate() applied unlike sibling routes", "trust_boundary": "authenticated user input -> arbitrary SQL", "file_refs": ["backend/src/transactions/transactions.service.ts:120-126", "backend/src/transactions/transactions.routes.ts"]},
+      {"entry_point": "Frontend API clients", "description": "axios apiClient withCredentials:true, auto single-retry-on-401 via /auth/refresh", "trust_boundary": "browser -> backend API", "file_refs": ["frontend/src/services/apiClient.ts"]},
+      {"entry_point": "Client-side token storage", "description": "loginRequest/registerRequest write access token into localStorage despite httpOnly-cookie design intent -> XSS can steal it", "trust_boundary": "JS execution context -> token", "file_refs": ["frontend/src/features/auth/authApi.ts:19,25"]},
+      {"entry_point": "Supply chain (npm install scripts)", "description": "allowScripts allowlist for native-binding/build packages (argon2, esbuild, unrs-resolver, @parcel/watcher, @prisma/client, @prisma/engines, prisma, fsevents, msw)", "trust_boundary": "install-time code execution", "file_refs": ["package.json"]}
+    ],
+    "infra_reader": {
+      "surfaces": [
+        {"entry_point": "scripts/setup-db.sh", "description": "Provisions local Postgres role 'payflow' (hardcoded weak password 'payflow'), grants CREATEDB, owns payflow_dev/payflow_test", "trust_boundary": "developer workstation, no network exposure", "file_refs": ["scripts/setup-db.sh"]},
+        {"entry_point": ".env.example / .env", "description": "DATABASE_URL, JWT secrets, cookie/CORS config; real .env is gitignored and never committed (verified via git log --all -- .env)", "trust_boundary": "process env / local filesystem", "file_refs": [".env.example", ".env"]},
+        {"entry_point": "mockPaymentProvider.ts", "description": "fully simulated, no real external API/keys", "trust_boundary": "in-process only", "file_refs": ["backend/src/wallets/mockPaymentProvider.ts"]}
+      ],
+      "threats": [
+        {"threat": "Hardcoded weak DB password in tracked setup script encourages weak-credential reuse across environments", "surface": "scripts/setup-db.sh", "asset": "Postgres payflow_dev/payflow_test databases"},
+        {"threat": "DB role has CREATEDB beyond least privilege (only needed for Prisma shadow DB)", "surface": "Postgres role 'payflow'", "asset": "local Postgres instance"}
+      ],
+      "notes": "No Dockerfile/k8s/terraform/CI present - local dev only, no deployed infra surface yet."
+    },
+    "asset_finder": [
+      {"asset": "User credentials (passwordHash) + PII (name/email/phone/DOB/address)", "description": "User table", "sensitivity": "critical"},
+      {"asset": "Auth/session tokens (access JWT + refresh token chain)", "description": "RefreshToken table with rotation + reuse detection", "sensitivity": "critical"},
+      {"asset": "Wallet balance", "description": "Wallet.balance Decimal(14,2), status ACTIVE/SUSPENDED", "sensitivity": "critical"},
+      {"asset": "Transaction/transfer ledger", "description": "Transaction table - integrity matters more than secrecy; no idempotency key on client requests, no separate double-entry journal", "sensitivity": "critical"},
+      {"asset": "Beneficiary PII", "description": "identifier (email/phone) + name used to route transfers", "sensitivity": "medium-high"},
+      {"asset": "Audit log integrity", "description": "AuditLog table, no write-once/checksum enforcement observed", "sensitivity": "high"},
+      {"asset": "Service availability", "description": "wallet/transfer/topup endpoints", "sensitivity": "medium"}
+    ],
+    "history_miner_summary": "19 security-relevant commits (VULN-001..018 + SONAR-DEMO), plus AI vuln-scan findings (two rounds: 717181d, 2647e0d), SonarQube SAST (0/18 detected, style-only), ZAP DAST (missing security headers only), and one worked triage example. Dominant pattern: missing/removed authorization or business-logic validation guards (dropped ownerUserId filter, dropped .positive()/decimal refine, dropped revokeAllRefreshTokensForUser call) that look structurally identical to the safe code and pass functional tests. Secondary pattern: defense-in-depth erosion (token-in-localStorage, CSRF middleware unmounted, CORS wildcard, missing headers) where a second independent layer was silently removed while the primary control still holds.",
+    "advisory_fetcher": "gh CLI unavailable in sandbox; no public advisory data retrieved. No dependabot config. Open questions: verify jsonwebtoken (repo has history of a vuln-017 downgrade to 8.5.1 exercise), express5.2.1, cors2.8.6, prisma6.19.3, axios1.20.0, react19.3.0, vite8.3.1 against OSV/npm advisory DB manually."
+  }
+}
